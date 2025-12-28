@@ -79,7 +79,8 @@ vim .env.production
 - `REDIS_URL`：Redis 地址
 - `DATA_DIR` / `SQLITE_PATH`：数据目录（建议放到 `/var/lib/voiceflow`）
 - `UPLOAD_MAX_BYTES`：上传上限（默认 50MB）
-- `GEMINI_API_KEY`：不配置也可跑通（会走降级示例输出），配置后才会真实调用 Gemini
+- `OPENAI_BASE_URL`：OpenAI 兼容接口地址（例如 `http://43.131.235.107:45201/v1`）
+- `OPENAI_API_KEY`：不配置也可跑通（会走降级示例输出），配置后才会真实调用 AI
 
 初始化数据目录：
 
@@ -138,5 +139,5 @@ curl -sS http://127.0.0.1:3000/api/recordings
 
 - 运行方式：`next build` + `next start`
 - 上传限制：`UPLOAD_MAX_BYTES`（API）+ `client_max_body_size`（Nginx）
-- 密钥隔离：`GEMINI_API_KEY` 仅在 worker/服务端读取，前端不包含任何密钥
+- 密钥隔离：`OPENAI_API_KEY` 仅在 worker/服务端读取，前端不包含任何密钥
 - 进程拆分：Web（Next）与 Worker（BullMQ 消费者）由 pm2 同时托管
