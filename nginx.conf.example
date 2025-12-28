@@ -1,0 +1,49 @@
+## /etc/nginx/sites-available/voiceflow.conf
+## 说明：请替换 server_name 与证书路径
+
+server {
+  listen 80;
+  server_name voiceflow.example.com;
+
+  # 若你暂时不配 HTTPS，可删除本段并直接 proxy_pass
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name voiceflow.example.com;
+
+  ssl_certificate     /etc/letsencrypt/live/voiceflow.example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/voiceflow.example.com/privkey.pem;
+
+  # 上传大小（需与 UPLOAD_MAX_BYTES 对齐）
+  client_max_body_size 50m;
+
+  # PWA/service worker 需要可访问
+  location = /sw.js {
+    add_header Cache-Control "public, max-age=0";
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # WebSocket/升级头（Next.js 一般不需要，但保留无害）
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+
+    # 上传/长任务场景
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+  }
+}
+
